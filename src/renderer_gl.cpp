@@ -5780,10 +5780,7 @@ namespace bgfx { namespace gl
 				else if (BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGL)
 					 &&  BX_ENABLED(BGFX_CONFIG_RENDERER_OPENGL <= 21) )
 				{
-					const bool usesTextureLod = true
-						&& s_extension[Extension::ARB_shader_texture_lod].m_supported
-						&& bx::findIdentifierMatch(code, s_ARB_shader_texture_lod)
-						;
+					const bool usesTextureLod   = !!bx::findIdentifierMatch(code, s_ARB_shader_texture_lod);
 					const bool usesGpuShader4   = !!bx::findIdentifierMatch(code, s_EXT_gpu_shader4);
 					const bool usesGpuShader5   = !!bx::findIdentifierMatch(code, s_ARB_gpu_shader5);
 					const bool usesIUsamplers   = !!bx::findIdentifierMatch(code, s_uisamplers);
@@ -5808,12 +5805,27 @@ namespace bgfx { namespace gl
 					{
 						if (m_type == GL_FRAGMENT_SHADER)
 						{
-							writeString(&writer
-								, "#extension GL_ARB_shader_texture_lod : enable\n"
-								  "#define texture2DGrad texture2DGradARB\n"
-								  "#define texture2DProjGrad texture2DProjGradARB\n"
-								  "#define textureCubeGrad textureCubeGradARB\n"
+							BX_WARN(s_extension[Extension::ARB_shader_texture_lod].m_supported
+								, "ARB_shader_texture_lod is used but not supported by GL driver."
 								);
+
+							if (s_extension[Extension::ARB_shader_texture_lod].m_supported)
+							{
+								writeString(&writer
+									, "#extension GL_ARB_shader_texture_lod : enable\n"
+									"#define texture2DGrad texture2DGradARB\n"
+									"#define texture2DProjGrad texture2DProjGradARB\n"
+									"#define textureCubeGrad textureCubeGradARB\n"
+									);
+							}
+							else
+							{
+								writeString(&writer
+									, "#define texture2DLod(_sampler, _coord, _level) texture2D(_sampler, _coord)\n"
+										"#define texture2DProjLod(_sampler, _coord, _level) texture2DProj(_sampler, _coord)\n"
+										"#define textureCubeLod(_sampler, _coord, _level) textureCube(_sampler, _coord)\n"
+									);
+							}
 						}
 					}
 

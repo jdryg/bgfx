@@ -22,6 +22,7 @@
 #define BGFX_USE_GLX (BGFX_CONFIG_RENDERER_OPENGL && (0 \
 			|| BX_PLATFORM_BSD                          \
 			|| BX_PLATFORM_LINUX                        \
+			|| BX_PLATFORM_RPI                          \
 			) )
 
 #define BGFX_USE_GL_DYNAMIC_LIB (0 \
@@ -29,6 +30,7 @@
 			|| BX_PLATFORM_LINUX   \
 			|| BX_PLATFORM_OSX     \
 			|| BX_PLATFORM_WINDOWS \
+			|| BX_PLATFORM_RPI     \
 			)
 
 #if BGFX_CONFIG_RENDERER_OPENGL
@@ -38,7 +40,7 @@
 #			define GL_ARB_shader_objects // OSX collsion with GLhandleARB in gltypes.h
 #		endif // BX_PLATFORM_OSX
 #	else
-#		if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
+#		if BX_PLATFORM_LINUX || BX_PLATFORM_BSD || BX_PLATFORM_RPI
 #			define GL_PROTOTYPES
 #			define GL_GLEXT_LEGACY
 #			include <GL/gl.h>
@@ -956,7 +958,7 @@ typedef uint64_t GLuint64;
 
 #if BX_PLATFORM_WINDOWS
 #	include <windows.h>
-#elif BX_PLATFORM_LINUX || BX_PLATFORM_BSD
+#elif BX_PLATFORM_LINUX || BX_PLATFORM_BSD || BX_PLATFORM_RPI
 #	include "glcontext_glx.h"
 #elif BX_PLATFORM_OSX
 #	include "glcontext_nsgl.h"

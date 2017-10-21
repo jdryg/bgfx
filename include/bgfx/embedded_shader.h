@@ -44,6 +44,7 @@
 		|| BX_PLATFORM_LINUX            \
 		|| BX_PLATFORM_OSX              \
 		|| BX_PLATFORM_WINDOWS          \
+		|| BX_PLATFORM_RPI              \
 		)
 #define BGFX_PLATFORM_SUPPORTS_METAL (0 \
 		|| BX_PLATFORM_IOS              \
