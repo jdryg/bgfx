@@ -95,6 +95,17 @@ namespace bgfx { namespace gl
 			};
 
 			NSOpenGLPixelFormat* pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
+			if (nil == pixelFormat) 
+			{
+				BX_WARN(false, "Failed to create accelerated OpenGL pixel format. Trying non-accelerated pixel format");
+
+				const uint32_t numAttribs = BX_COUNTOF(pixelFormatAttributes);
+				pixelFormatAttributes[numAttribs - 3] = 0;
+				pixelFormatAttributes[numAttribs - 4] = 0; // NSOpenGLPFNoRecovery
+				pixelFormatAttributes[numAttribs - 5] = 0;
+				pixelFormatAttributes[numAttribs - 6] = 0; // NSOpenGLPFAccelerated
+				pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
+			}
 			BGFX_FATAL(NULL != pixelFormat, Fatal::UnableToInitialize, "Failed to initialize pixel format.");
 
 			NSRect glViewRect = [[nsWindow contentView] bounds];
