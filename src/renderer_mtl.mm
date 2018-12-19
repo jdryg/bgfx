@@ -619,16 +619,16 @@ namespace bgfx { namespace mtl
 
 			g_internalData.context = m_device;
 
-#if BX_PLATFORM_OSX
-			m_pool = [[NSAutoreleasePool alloc] init];
+#if BX_PLATFORM_OSX && !__has_feature(objc_arc)
+//			m_pool = [[NSAutoreleasePool alloc] init];
 #endif
 			return true;
 		}
 
 		void shutdown()
 		{
-#if BX_PLATFORM_OSX
-			[m_pool release];
+#if BX_PLATFORM_OSX && !__has_feature(objc_arc)
+//			[m_pool release];
 #endif
 			m_occlusionQuery.postReset();
 			m_gpuTimer.shutdown();
@@ -1117,6 +1117,14 @@ namespace bgfx { namespace mtl
 				return;
 			}
 
+#if BX_PLATFORM_OSX
+#if  __has_feature(objc_arc)
+			@autoreleasepool {
+#else
+			m_pool = [[NSAutoreleasePool alloc] init];
+#endif // __has_feature(objc_arc)
+#endif // BX_PLATFORM_OSX
+
 			for (uint32_t ii = 0, num = m_numWindows; ii < num; ++ii)
 			{
 				FrameBufferMtl& frameBuffer = ii == 0 ? m_mainFrameBuffer : m_frameBuffers[m_windows[ii].idx];
@@ -1132,9 +1140,12 @@ namespace bgfx { namespace mtl
 			m_commandBuffer = 0;
 
 #if BX_PLATFORM_OSX
+#if  __has_feature(objc_arc)
+			}
+#else
 			[m_pool release];
-			m_pool = [[NSAutoreleasePool alloc] init];
-#endif
+#endif // __has_feature(objc_arc)
+#endif // BX_PLATFORM_OSX
 		}
 
 		void updateResolution(const Resolution& _resolution)
@@ -2187,7 +2198,7 @@ namespace bgfx { namespace mtl
 		RenderCommandEncoder m_renderCommandEncoder;
 		FrameBufferHandle    m_renderCommandEncoderFrameBufferHandle;
 
-#if BX_PLATFORM_OSX
+#if BX_PLATFORM_OSX && !__has_feature(objc_arc)
 		NSAutoreleasePool*   m_pool;
 #endif
 	};
