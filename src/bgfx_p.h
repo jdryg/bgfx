@@ -2320,7 +2320,7 @@ constexpr uint64_t kSortKeyComputeProgramMask  = uint64_t(BGFX_CONFIG_MAX_PROGRA
 			BX_CHECK(UINT8_MAX != m_draw.m_streamMask, "");
 			const uint32_t indexSize = 0 == (_dib.m_flags & BGFX_BUFFER_INDEX32) ? 2 : 4;
 			m_draw.m_startIndex  = _dib.m_startIndex + _firstIndex;
-			m_draw.m_numIndices  = bx::min(_numIndices, _dib.m_size/indexSize);
+			m_draw.m_numIndices  = (_dib.m_flags & BGFX_BUFFER_ALLOW_RESIZE) ? _numIndices : bx::min(_numIndices, _dib.m_size/indexSize);
 			m_draw.m_indexBuffer = _dib.m_handle;
 		}
 
@@ -3265,11 +3265,26 @@ constexpr uint64_t kSortKeyComputeProgramMask  = uint64_t(BGFX_CONFIG_MAX_PROGRA
 				m_dynIndexBufferAllocator.free(uint64_t(dib.m_handle.idx)<<32 | dib.m_offset);
 				m_dynIndexBufferAllocator.compact();
 
+				const uint16_t prevHandleIdx = dib.m_handle.idx;
+
 				uint64_t ptr = allocDynamicIndexBuffer(_mem->size, dib.m_flags);
 				dib.m_handle.idx = uint16_t(ptr>>32);
 				dib.m_offset     = uint32_t(ptr);
 				dib.m_size       = _mem->size;
 				dib.m_startIndex = bx::strideAlign(dib.m_offset, indexSize)/indexSize;
+
+				if (prevHandleIdx != dib.m_handle.idx)
+				{
+					const uint32_t numSubmittedItems = m_submit->m_numRenderItems;
+					for (uint32_t i = 0; i < numSubmittedItems; ++i)
+					{
+						RenderDraw* item = &m_submit->m_renderItem[i].draw;
+						if (item->m_indexBuffer.idx == prevHandleIdx)
+						{
+							item->m_indexBuffer.idx = dib.m_handle.idx;
+						}
+					}
+				}
 			}
 
 			const uint32_t offset = (dib.m_startIndex + _startIndex)*indexSize;
