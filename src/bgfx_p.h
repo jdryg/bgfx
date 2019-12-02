@@ -3266,6 +3266,7 @@ constexpr uint64_t kSortKeyComputeProgramMask  = uint64_t(BGFX_CONFIG_MAX_PROGRA
 				m_dynIndexBufferAllocator.compact();
 
 				const uint16_t prevHandleIdx = dib.m_handle.idx;
+				const uint32_t prevStartIndex = dib.m_startIndex;
 
 				uint64_t ptr = allocDynamicIndexBuffer(_mem->size, dib.m_flags);
 				dib.m_handle.idx = uint16_t(ptr>>32);
@@ -3273,7 +3274,7 @@ constexpr uint64_t kSortKeyComputeProgramMask  = uint64_t(BGFX_CONFIG_MAX_PROGRA
 				dib.m_size       = _mem->size;
 				dib.m_startIndex = bx::strideAlign(dib.m_offset, indexSize)/indexSize;
 
-				if (prevHandleIdx != dib.m_handle.idx)
+				if (prevHandleIdx != dib.m_handle.idx || prevStartIndex != dib.m_startIndex)
 				{
 					const uint32_t numSubmittedItems = m_submit->m_numRenderItems;
 					for (uint32_t i = 0; i < numSubmittedItems; ++i)
@@ -3282,6 +3283,7 @@ constexpr uint64_t kSortKeyComputeProgramMask  = uint64_t(BGFX_CONFIG_MAX_PROGRA
 						if (item->m_indexBuffer.idx == prevHandleIdx)
 						{
 							item->m_indexBuffer.idx = dib.m_handle.idx;
+							item->m_startIndex = (item->m_startIndex - prevStartIndex) + dib.m_startIndex;
 						}
 					}
 				}
